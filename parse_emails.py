@@ -6,6 +6,7 @@ import json
 import csv
 import codecs
 from datetime import datetime
+from fileIO import FileIO
 
 ##
 ## CONSTANTS and REGEX
@@ -52,61 +53,6 @@ def main():
 ##
 ## CLASSES
 ##
-
-class FileIO(object):
-  '''
-  General read/write of files
-  '''
-  def __init__(self, in_file=None, out_file=None, data=None, write_tsv=False):
-    self.intake = in_file
-    self.out = out_file
-    self.write_tsv = write_tsv
-    # self.fields = []
-    self.data_in = data
-    self.data_temp = []
-    self.data_out = None
-
-  def fmt(self):
-    if not self.write_tsv:
-      self.data_out = json.dumps(self.data_temp, sort_keys=True, indent=2)
-    else:
-      self.data_out = self.data_temp
-
-  def write(self):
-    if self.out is not None and self.data_out is not None:
-      if self.write_tsv is True:
-        files = list(self.data_out.keys())
-        for file in files:
-          filename = file + "_" + self.out
-          with codecs.open(filename, "w", encoding="utf-8") as f:
-            # need to write two files, not one
-            fieldnames = list(self.data_out[file][0].keys()) 
-            writer = csv.DictWriter(f, fieldnames=fieldnames, delimiter=DELIMITER)                 
-            writer.writeheader()                                             
-            for event in self.data_out[file]:                                      
-              writer.writerow(event) 
-      else:
-        with codecs.open(self.out, "w", "utf-8") as f:
-          for line in self.data_out:
-            # f.write(line + u"\n")
-            f.write(line)
-    else:
-      print("Output file is not specified - cannot write", file=sys.stderr)
-  
-  def read(self, debug=False):
-    if self.intake is not None:
-      with codecs.open(self.intake, "r", "utf-8") as f:
-        li = []
-        i = 0
-        for line in f.readlines():
-          if debug:
-            i += 1 
-            print(str(i))
-          li.append(line)
-        self.data_in = li
-    else:
-      print("Input file is not specified - cannot read", file=sys.stderr)
-
 
 class Notices(FileIO):
   '''

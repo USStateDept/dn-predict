@@ -1,5 +1,9 @@
 .DS_Store
 **.pyc
+score_predictor.py
 webapp/css/foundation.css
+webapp/js/_predict.js
 webapp/js/app.js
+webapp/js/ranges.js
+webapp/js/model.js
 webapp/js/vendor/**
