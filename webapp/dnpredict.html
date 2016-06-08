@@ -1,0 +1,215 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>eDepartment Notice Me</title>
+    <link rel="stylesheet" href="css/foundation.css">
+    <link rel="stylesheet" href="css/custom.css">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.css">
+    <script src="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>
+  </head>
+  <body>
+    <br/>
+    <div class="row">
+      <div id="top_bar" class="top-bar">
+        <div class="top-bar-left">
+          <ul class="dropdown menu" data-dropdown-menu>
+            <li class="menu-text">eDepartment Notice Me</li>
+          </ul>
+        </div>
+        <div class="top-bar-right">
+          <ul class="dropdown menu" data-dropdown-menu>
+            <li id="date" class="menu-text"></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="row">
+      <div id="lower_bar" class="small-12 columns callout">
+        <h4>Data-informed internal communication</h4>
+      </div>
+    </div>
+
+    <div class="row">
+      <div id="main-content" class="small-12 columns callout">
+        <h4>How this works</h4>
+
+        <ul>
+          <li>Starting with the assumption that notice titles are essential to driving interest...</li>
+          <li>We created a model that predicts the total number of views using data from actual Notice readership</li>
+          <li>This tool allows you to estimate the relative interest in your message...</li>
+          <li>And provides some suggestions that might improve your "reach."</li>
+        </ul>
+
+        <form id="submit_form" method="get" accept-charset="utf-8">
+          <div class="input-group">
+            <input name="dn_title" class="input-group-field" type="text"
+             placeholder="Type or paste your Notice Title here">
+            <div class="input-group-button">
+              <button id="submit-button" class="button" type="submit">Submit</button>
+            </div>
+          </div>
+        </form>
+
+      <div>
+        <p class="text-center">
+          <small>
+            While this is hosted in the cloud, all data are processed client-side (i.e., on your computer)
+          </small>
+        </p>
+        <p class="text-center">
+          <small>Questions? Comments? <a href="mailto:TraskS@state.gov">Email us!</a></small>
+        </p>
+      </div>
+      </div>
+    </div>
+
+<!--       <div id="output-container">
+  <div id="output"></div>
+</div> -->
+
+<!-- OUTPUT MODAL START -->
+
+    <div class="reveal" id="output-container" data-reveal>
+      <h4>Results</h4>
+      <hr/>
+      <h5>Predicted readership:</h5>
+      <div id="output-score"></div>
+      <p><small>This is the predicted total number of views for the lifetime of
+      your Notice (most hits occur within 48h of publication)</small></p>
+      <hr/>
+      <h5>Word heatmap:</h5>
+      <div id="output-explain"></div>
+      <div id="output-labels"></div>
+      <p><small>This map shows which words are associated with higher (blue) and
+      lower (red) readership; This distribution is part of the data used in the
+      prediction</small></p>
+      <hr/>
+      <h5>Probability distribution:</h5>
+      <div class="ct-chart ct-major-eleventh"></div>
+      <p><small>This chart indicates the probability that your notice will reach an
+      audience of a given size; The listed prediction simply reflects the largest single probability
+      and might be less accurate if you see a bimodal or unusual distribution</small></p>
+      <button class="close-button" data-close aria-label="Close modal" type="button">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+
+<!-- OUTPUT MODAL END -->
+
+
+
+    <script>
+    var d = new Date();
+    document.getElementById("date").innerHTML = d.toDateString();
+    </script>
+
+    <script src="js/vendor/jquery.js"></script>
+    <script src="js/vendor/what-input.js"></script>
+    <script src="js/vendor/foundation.js"></script>
+    <script src="js/model.js"></script>
+    <script src="js/predict.js"></script>
+    <script src="js/ranges.js"></script>
+    <script src="js/stemmer.js"></script>
+    <script src="js/app.js"></script>
+
+    <script>
+      $(function() { //shorthand document.ready function
+        $('#submit_form').on('submit', function(e) { //use on if jQuery 1.7+
+          e.preventDefault();  //prevent form from submitting
+          console.log("form submitted!"); //debug
+
+          // capture the input value as data (array), k:v
+          var data = $("#submit_form").serializeArray();
+          console.log(data[0].value); // debug
+
+          // send the input text to
+          var in_text = data[0].value.toString();
+          var result = predictScore(in_text, ranges, model, stopwords);
+          console.log(result); // debug
+
+          // output results to the page
+
+
+          // pull data from results
+          var original_text = " " + in_text + " "; // pad ends for regex matching
+          var prediction = result.category;
+          var score = result.score;
+
+
+          // clear contents of output div
+          $("#output-score").empty();
+          $("#output-explain").empty();
+
+          // report the predicted number of readers
+          $("#output-score").append($('<h3>').append(prediction) );
+
+          //
+          // Display heat-mapped text via result.explain data
+          //
+          var oldHtml;
+          var newHtml = original_text;
+
+          // write content to page
+          $("#output-explain").append($('<h4>').append(newHtml) );
+
+          // IF score is null, then we do not need to update other fields
+          if (score != null) {
+
+            // modify content
+            var wordClass;
+            var pattern;
+            var bookend = "[^A-Za-z]";
+
+            for (var word in result.explain) {
+              console.log(word); // debug
+
+              if (word in result.explain) {
+                console.log(word + " is in result.explain");
+                //grab existing value of #output
+                oldHtml = $("#output-explain").html();
+                wordClass = result.explain[word].toString()
+
+                pattern = new RegExp(bookend + word + bookend, "g");
+                newHtml = oldHtml.replace(pattern, " <span class='r" + wordClass + "'>" + word +"</span> " )
+
+                $("#output-explain").html(newHtml);
+              }
+            }
+
+            // output-labels to explain what the colors mean
+            $("#output-labels").empty();
+            $("#output-labels").append($('<p id="map-key">').append("Key: ") );
+            for (var l in result.labels) {
+              $("#map-key").append(" [<span class='r" + l + "'>" + result.labels[l] + "</span>]" );
+            }
+
+            // probability chart
+            new Chartist.Bar('.ct-chart', {
+              labels: result.labels,
+              series: [
+                result.series
+              ]
+            }, {
+              axisX: {
+                // On the x-axis start means top and end means bottom
+                position: 'start'
+              },
+              axisY: {
+                // On the y-axis start means left and end means right
+                position: 'end'
+              }
+            });
+          }
+          // open the reveal modal
+          $("#output-container").foundation('open');
+        });
+      });
+    </script>
+
+  </body>
+</html>

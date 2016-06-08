@@ -1,0 +1,47 @@
+
+#top_bar, #top_bar ul, .menu-text {
+  background-color: #333333;
+  color: #FFFFFF;
+}
+
+#lower_bar {
+  background-color: #993300;
+  color: #FFFFFF;
+}
+
+#main-content {
+  background-color: #FFFAF0;
+  text-decoration: none;
+
+}
+
+#submit-button {
+  background-color: #333333;
+}
+
+p small {
+  color: #95A5A6;
+}
+
+/* color codes for work "ranks" */
+.r0 {color: #2c7bb6;}
+.r1 {color: #abd9e9;}
+.r2 {color: #fdae61;}
+.r3 {color: #d7191c;}
+
+/* BAR CHART MODIFIERS */
+.ct-series-a .ct-bar {
+  /* Set the colour of this series line */
+  stroke: #993300 !important;
+  /* The width of your bars */
+  stroke-width: 60px;
+}
+
+.ct-horizontal {
+  display: none;
+}
+
+.ct-label {
+  font-size: 1rem !important;
+  font-weight: bold !important;
+}
